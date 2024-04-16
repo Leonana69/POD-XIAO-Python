@@ -4,7 +4,6 @@ from podtp import Podtp
 from podtp import PodtpType
 from matplotlib import pyplot as plt
 from matplotlib.animation import FuncAnimation
-import struct
 import numpy as np
 
 # Configuration for animation
@@ -20,23 +19,22 @@ ax.grid(False)  # Optionally enable grid
 
 def update_plot(data):
     """Update the plot with new data."""
-    grid_data = data.reshape(8, 8)
-    print(grid_data)
-    im.set_data(grid_data)
+    # print(data)
+    im.set_data(data)
     return [im]
 
-def data_gen(podtp):
+def data_gen(podtp: Podtp):
     """Generator function to yield data packets."""
     while True:
-        packet = podtp.get_packet(PodtpType.LOG)
-        if packet:
-            data = np.array(struct.unpack('<64h', packet.data.bytes(0, 128)))
-            for i in range(0, len(data)):
-                if data[i] & 0x8000:
-                    data[i] = 0
-            yield data
-        else:
-            break  # Stop the generator if no packet is received
+        data = podtp.sensor_data.depth
+        print(f"State: {state}")
+        for i in range(0, len(data)):
+            for j in range(0, len(data[i])):
+                if data[i][j] & 0x8000:
+                    data[i][j] = 0
+
+        yield data
+        sleep(0.1)
 
 def main():
     with open('config.json', 'r') as file:
@@ -47,6 +45,5 @@ def main():
         ani = FuncAnimation(fig, update_plot, frames=lambda: data_gen(podtp), repeat=False)
         plt.show()
         podtp.disconnect()
-
 if __name__ == '__main__':
     main()

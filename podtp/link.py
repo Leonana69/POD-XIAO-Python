@@ -4,7 +4,7 @@ from enum import Enum
 from typing import Optional
 from .utils import print_t
 
-LINK_MAX_WAIT_TIME = 500
+LINK_MAX_WAIT_TIME = 5000
 
 class WifiLink:
     def __init__(self, server_ip: str, server_port: int):

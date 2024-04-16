@@ -3,7 +3,6 @@ from enum import Enum
 from PIL import Image
 from typing import Optional
 from threading import Lock
-from .utils import print_t
 import numpy as np
 
 CAMERA_START_BYTE_1 = 0xAE
@@ -28,37 +27,13 @@ class FrameReader:
         self.image_index = None
         self.lock_frame = Lock()
         self.frame = np.array(Image.new('RGB', (320, 240)))
-        self.lock_depth = Lock()
-        self._depth = np.empty((8, 8))
         self.cache_path = cache_path
         self.timestamp = 0
 
-    @property
-    def depth(self):
-        with self.lock_depth:
-            return self._depth
-        
-    @depth.setter
-    def depth(self, value):
-        with self.lock_depth:
-            self._depth = value
-
-    @property
-    def frame(self):
-        with self.lock_frame:
-            return self._frame
-        
-    @frame.setter
-    def frame(self, value):
-        with self.lock_frame:
-            self._frame = value
-
-    def process(self, data: Optional[bytes]):
-        if data is None:
-            return
-        
+    def process(self, data: Optional[bytes]) -> Optional[np.ndarray]:        
         index = 0
-        length = len(data)
+        length = len(data) if data else 0
+        get_frame = False
         while index < length:
             match self.rx_state:
                 case RxState.IMAGE_STATE_START_1:
@@ -92,7 +67,9 @@ class FrameReader:
                     if self.image_index == self.image_size:
                         self.frame = np.array(Image.open(io.BytesIO(self.image_bytes)).rotate(180))
                         self.rx_state = RxState.IMAGE_STATE_START_1
+                        get_frame = True
                         # duration = time.time() - self.timestamp
                         # print(f'Image size {self.image_size}, time: {duration}, data rate: {self.image_size / (duration):.2f} bytes/s')
                         self.image_count += 1
+        return self.frame if get_frame else None
                     

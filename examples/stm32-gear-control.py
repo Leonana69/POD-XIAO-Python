@@ -58,7 +58,7 @@ def control(podtp: Podtp):
         # You can update your game logic and draw here
         # For this example, we'll just fill the screen with black
         # screen.fill((0, 0, 0))
-        image_surface = pygame.surfarray.make_surface(podtp.frame_reader.frame.transpose(1, 0, 2))
+        image_surface = pygame.surfarray.make_surface(podtp.sensor_data.frame.transpose(1, 0, 2))
         screen.blit(image_surface, (0, 0))
         # Update the display
         pygame.display.flip()

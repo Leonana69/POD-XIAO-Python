@@ -4,12 +4,14 @@ import time
 from typing import Optional
 from threading import Thread
 import numpy as np
+from numpy.typing import NDArray
 from .podtp_packet import PODTP_MAX_DATA_LEN, PodtpPacket, PodtpType, PodtpPort
 from .link import WifiLink
 from .utils import print_t
 from .podtp_parser import PodtpParser
 from .frame_reader import FrameReader
 from .camera_config import CameraConfig
+from .sensor import Sensor
 
 COMMAND_TIMEOUT_MS = 600
 
@@ -26,6 +28,7 @@ class Podtp:
         self.stream_link = WifiLink(config["ip"], config["stream_port"])
         self.frame_reader = FrameReader()
         self.stream_on = False
+        self.sensor_data = Sensor()
 
     def connect(self) -> bool:
         self.connected = self.data_link.connect()
@@ -55,11 +58,11 @@ class Podtp:
             self.stream_thread.start()
 
     def reset_stream_link(self):
-        packet = PodtpPacket().set_header(PodtpType.ESP32, PodtpPort.RESET_STREAM_LINK)
+        packet = PodtpPacket().set_header(PodtpType.ESP32, PodtpPort.ESP32_RESET_STREAM_LINK)
         self.send_packet(packet)
 
     def config_camera(self, config: CameraConfig):
-        packet = PodtpPacket().set_header(PodtpType.ESP32, PodtpPort.CONFIG_CAMERA)
+        packet = PodtpPacket().set_header(PodtpType.ESP32, PodtpPort.ESP32_CONFIG_CAMERA)
         config_bytes = config.pack()
         packet.length = 1 + len(config_bytes)
         packet.data[:len(config_bytes)] = config_bytes
@@ -77,7 +80,7 @@ class Podtp:
             if self.keep_alive:
                 if time.time() - self.last_packet_time > COMMAND_TIMEOUT_MS / 1000:
                     self.last_packet_time = time.time()
-                    packet = PodtpPacket().set_header(PodtpType.CTRL, PodtpPort.KEEP_ALIVE)
+                    packet = PodtpPacket().set_header(PodtpType.CTRL, PodtpPort.CTRL_KEEP_ALIVE)
                     self.send_packet(packet)
             time.sleep(0.05)
 
@@ -86,17 +89,21 @@ class Podtp:
             self.packet_parser.process(self.data_link.receive(PODTP_MAX_DATA_LEN + 1))
             packet = self.packet_parser.get_packet()
             if packet:
-                if packet.header.type == PodtpType.LOG and packet.header.port == PodtpPort.STRING:
-                    print_t(f'Log: {packet.data[:packet.length - 1].decode()}', end='')
+                if packet.header.type == PodtpType.LOG:
+                    if packet.header.port == PodtpPort.LOG_STRING:
+                        print_t(f'Log: {packet.data[:packet.length - 1].decode()}', end='')
+                    elif packet.header.port == PodtpPort.LOG_DISTANCE:
+                        self.sensor_data.depth = np.array(struct.unpack('<64h', packet.data.bytes(0, 128))).reshape(8, 8)
+                    elif packet.header.port == PodtpPort.LOG_STATE:
+                        self.sensor_data.state = np.array(struct.unpack('<6h', packet.data.bytes(0, 12)))
                 else:
                     self.packet_queue[packet.header.type].put(packet)
 
     def stream_func(self):
         while self.stream_on:
-            self.frame_reader.process(self.stream_link.receive(65535))
-            depth_packet = self.get_packet(PodtpType.LOG, 0)
-            if depth_packet:
-                self.frame_reader.depth = np.array(struct.unpack('<64h', depth_packet.data.bytes(0, 128))).reshape(8, 8)
+            frame = self.frame_reader.process(self.stream_link.receive(65535))
+            if frame is not None:
+                self.sensor_data.frame = frame
             time.sleep(0.05)
 
     def get_packet(self, type: PodtpType, timeout = 1) -> Optional[PodtpPacket]:
@@ -110,45 +117,45 @@ class Podtp:
         self.data_link.send(packet.pack())
         if packet.header.ack:
             packet = self.get_packet(PodtpType.ACK, timeout)
-            if not packet or packet.header.port != PodtpPort.OK:
+            if not packet or packet.header.port != PodtpPort.ACK_OK:
                 return False
         return True
         
     def stm32_enable(self, disable = False):
-        packet = PodtpPacket().set_header(PodtpType.ESP32, PodtpPort.ENABLE_STM32)
+        packet = PodtpPacket().set_header(PodtpType.ESP32, PodtpPort.ESP32_ENABLE_STM32)
         packet.length = 2
         packet.data[0] = 0 if disable else 1
         self.send_packet(packet)
 
     def esp32_echo(self):
-        packet = PodtpPacket().set_header(PodtpType.ESP32, PodtpPort.ECHO)
+        packet = PodtpPacket().set_header(PodtpType.ESP32, PodtpPort.ESP32_ECHO)
         self.send_packet(packet)
         packet = self.get_packet(PodtpType.ESP32)
 
     def send_ctrl_lock(self, lock: bool) -> bool:
         packet = PodtpPacket().set_header(PodtpType.CTRL,
-                                          PodtpPort.LOCK,
+                                          PodtpPort.CTRL_LOCK,
                                           ack=True)
         packet.length = 2
         packet.data[0] = 1 if lock else 0
         return self.send_packet(packet)
 
     def send_command_setpoint(self, roll: float, pitch: float, yaw: float, thrust: float) -> bool:
-        packet = PodtpPacket().set_header(PodtpType.COMMAND, PodtpPort.RPYT)
+        packet = PodtpPacket().set_header(PodtpType.COMMAND, PodtpPort.COMMAND_RPYT)
         size = struct.calcsize('<ffff')
         packet.data[:size] = struct.pack('<ffff', roll, pitch, yaw, thrust)
         packet.length = 1 + size
         return self.send_packet(packet)
 
     def send_command_hover(self, height: float, vx: float, vy: float, vyaw: float) -> bool:
-        packet = PodtpPacket().set_header(PodtpType.COMMAND, PodtpPort.HOVER)
+        packet = PodtpPacket().set_header(PodtpType.COMMAND, PodtpPort.COMMAND_HOVER)
         size = struct.calcsize('<ffff')
         packet.data[:size] = struct.pack('<ffff', height, vx, vy, vyaw)
         packet.length = 1 + size
         return self.send_packet(packet)
     
     def send_command_position(self, x: float, y: float, z: float, yaw: float) -> bool:
-        packet = PodtpPacket().set_header(PodtpType.COMMAND, PodtpPort.POSITION)
+        packet = PodtpPacket().set_header(PodtpType.COMMAND, PodtpPort.COMMAND_POSITION)
         size = struct.calcsize('<ffff')
         packet.data[:size] = struct.pack('<ffff', x, y, z, yaw)
         packet.length = 1 + size

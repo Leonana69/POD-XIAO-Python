@@ -42,7 +42,7 @@ def read_bin_file(file_path):
 def send_write_flash(podtp: Podtp, flash_page, num_pages) -> bool:
     # print_t(f'Writing flash page {flash_page} with {num_pages} pages')
     packet = PodtpPacket().set_header(PodtpType.BOOT_LOADER,
-                                      PodtpPort.WRITE_FLASH, ack=True)
+                                      PodtpPort.BOOT_LOADER_WRITE_FLASH, ack=True)
     write_flash = WriteFlash()
     write_flash.bufferPage = 0
     write_flash.flashPage = flash_page + FIRMWARE_START_PAGE
@@ -58,7 +58,7 @@ def send_write_flash(podtp: Podtp, flash_page, num_pages) -> bool:
 def send_load_buffer(podtp: Podtp, file_path) -> bool:
     binary = read_bin_file(file_path)
     packet = PodtpPacket().set_header(PodtpType.BOOT_LOADER,
-                                      PodtpPort.LOAD_BUFFER, ack=True)
+                                      PodtpPort.BOOT_LOADER_LOAD_BUFFER, ack=True)
 
     load_buffer = LoadBuffer()
 
@@ -109,14 +109,14 @@ def send_load_buffer(podtp: Podtp, file_path) -> bool:
 
 def start_stm32_bootloader(podtp: Podtp):
     packet = PodtpPacket().set_header(PodtpType.ESP32,
-                                      PodtpPort.START_STM32_BOOTLOADER)
+                                      PodtpPort.ESP32_START_STM32_BOOTLOADER)
     packet.length = 2
     packet.data[0] = 1
     podtp.send_packet(packet)
 
 def start_stm32_firmware(podtp: Podtp):
     packet = PodtpPacket().set_header(PodtpType.ESP32,
-                                      PodtpPort.START_STM32_BOOTLOADER)
+                                      PodtpPort.ESP32_START_STM32_BOOTLOADER)
     packet.length = 2
     packet.data[0] = 0
     podtp.send_packet(packet)

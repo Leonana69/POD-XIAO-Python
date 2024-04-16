@@ -11,10 +11,10 @@ def main():
     podtp = Podtp(config)
     if podtp.connect():
         podtp.start_stream()
-        frame_reader = podtp.frame_reader
+        sensor = podtp.sensor_data
         while True:
-            frame = frame_reader.frame
-            print(frame_reader.depth)
+            frame = sensor.frame
+            print(sensor.depth)
             if frame is not None:
                 frame = np.array(frame)
                 cv2_image = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)

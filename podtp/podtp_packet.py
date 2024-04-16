@@ -19,33 +19,35 @@ class PodtpType(Enum):
 
 class PodtpPort(Enum):
     # ACK
-    ERROR = 0x0
-    OK = 0x1
+    ACK_ERROR = 0x0
+    ACK_OK = 0x1
 
     # COMMAND
-    RPYT = 0x0
-    TAKEOFF = 0x1
-    LAND = 0x2
-    HOVER = 0x3
-    POSITION = 0x4
+    COMMAND_RPYT = 0x0
+    COMMAND_TAKEOFF = 0x1
+    COMMAND_LAND = 0x2
+    COMMAND_HOVER = 0x3
+    COMMAND_POSITION = 0x4
 
     # LOG
-    STRING = 0x0
+    LOG_STRING = 0x0
+    LOG_DISTANCE = 0x1
+    LOG_STATE = 0x2
 
     # CTRL
-    LOCK = 0x0
-    KEEP_ALIVE = 0x1
+    CTRL_LOCK = 0x0
+    CTRL_KEEP_ALIVE = 0x1
     
     # ESP32
-    ECHO = 0x0
-    START_STM32_BOOTLOADER = 0x1
-    ENABLE_STM32 = 0x2
-    CONFIG_CAMERA = 0x3
-    RESET_STREAM_LINK = 0x4
+    ESP32_ECHO = 0x0
+    ESP32_START_STM32_BOOTLOADER = 0x1
+    ESP32_ENABLE_STM32 = 0x2
+    ESP32_CONFIG_CAMERA = 0x3
+    ESP32_RESET_STREAM_LINK = 0x4
 
     # BOOT_LOADER
-    LOAD_BUFFER = 0x1
-    WRITE_FLASH = 0x2
+    BOOT_LOADER_LOAD_BUFFER = 0x1
+    BOOT_LOADER_WRITE_FLASH = 0x2
 
     def __eq__(self, __value: object) -> bool:
         if isinstance(__value, int):
