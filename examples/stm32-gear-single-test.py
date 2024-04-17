@@ -5,7 +5,7 @@ import time
 def wait(podtp, t):
     count = 0
     while count < t:
-        print_t(f'Setpoint {count}, state: {podtp.sensor_data.state}')
+        print_t(f'Setpoint {count}, state: {podtp.sensor_data.state.data}')
         time.sleep(0.1)
         count += 1
 

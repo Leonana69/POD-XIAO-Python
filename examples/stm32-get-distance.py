@@ -26,7 +26,7 @@ def update_plot(data):
 def data_gen(podtp: Podtp):
     """Generator function to yield data packets."""
     while True:
-        data = podtp.sensor_data.depth
+        data = podtp.sensor_data.depth.data
         for i in range(0, len(data)):
             for j in range(0, len(data[i])):
                 if data[i][j] & 0x8000:

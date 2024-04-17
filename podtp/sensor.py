@@ -3,12 +3,22 @@ from threading import Lock
 from PIL import Image
 
 class Sensor:
+    class State:
+        def __init__(self) -> None:
+            self.data = np.zeros(6, dtype=np.int16)
+            self.timestamp = 0
+
+    class Depth:
+        def __init__(self) -> None:
+            self.data = np.zeros((8, 8), dtype=np.int16)
+            self.timestamp = 0
+
     def __init__(self) -> None:
-        self._depth = np.zeros((8, 8), dtype=np.int16)
+        self._depth = Sensor.Depth()
         self.lock_depth = Lock()
         self._frame = np.array(Image.new('RGB', (320, 240)))
         self.lock_frame = Lock()
-        self._state = np.zeros(6, dtype=np.int16)
+        self._state = Sensor.State()
         self.lock_state = Lock()
 
     @property
@@ -19,7 +29,8 @@ class Sensor:
     @depth.setter
     def depth(self, value):
         with self.lock_depth:
-            self._depth = value
+            self._depth.timestamp = value[0]
+            self._depth.data = np.array(value[1:], dtype=np.int16).reshape((8, 8))
 
     @property
     def frame(self):
@@ -39,4 +50,5 @@ class Sensor:
     @state.setter
     def state(self, value):
         with self.lock_state:
-            self._state = value
+            self._state.timestamp = value[0]
+            self._state.data = np.array(value[1:], dtype=np.int16)

@@ -93,9 +93,9 @@ class Podtp:
                     if packet.header.port == PodtpPort.LOG_STRING:
                         print_t(f'Log: {packet.data[:packet.length - 1].decode()}', end='')
                     elif packet.header.port == PodtpPort.LOG_DISTANCE:
-                        self.sensor_data.depth = np.array(struct.unpack('<64h', packet.data.bytes(0, 128))).reshape(8, 8)
+                        self.sensor_data.depth = struct.unpack('<I64h', packet.data.bytes(0, 132))
                     elif packet.header.port == PodtpPort.LOG_STATE:
-                        self.sensor_data.state = np.array(struct.unpack('<6h', packet.data.bytes(0, 12)))
+                        self.sensor_data.state = struct.unpack('<I6h', packet.data.bytes(0, 16))
                 else:
                     self.packet_queue[packet.header.type].put(packet)
 
