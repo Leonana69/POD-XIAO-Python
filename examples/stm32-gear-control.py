@@ -5,6 +5,7 @@ import sys
 
 def control(podtp: Podtp):
     podtp.start_stream()
+    podtp.reset_estimator()
     # Initialize Pygame
     pygame.init()
     clock = pygame.time.Clock()
@@ -59,7 +60,7 @@ def control(podtp: Podtp):
         if pygame.time.get_ticks() - last_command_time > 200:
             podtp.send_command_hover(0, vx, vy, vr)
             last_command_time = pygame.time.get_ticks()
-        print_t(podtp.sensor_data.state.timestamp, podtp.sensor_data.depth.timestamp)
+        print_t(podtp.sensor_data.state.data)
         # You can update your game logic and draw here
         # For this example, we'll just fill the screen with black
         # screen.fill((0, 0, 0))

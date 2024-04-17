@@ -160,3 +160,7 @@ class Podtp:
         packet.data[:size] = struct.pack('<ffff', x, y, z, yaw)
         packet.length = 1 + size
         return self.send_packet(packet)
+    
+    def reset_estimator(self) -> bool:
+        packet = PodtpPacket().set_header(PodtpType.CTRL, PodtpPort.CTRL_RESET_ESTIMATOR)
+        return self.send_packet(packet)
