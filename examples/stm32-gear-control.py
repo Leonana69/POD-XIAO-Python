@@ -17,6 +17,7 @@ def control(podtp: Podtp):
     vx = 0
     vy = 0
     vr = 0
+    last_command_time = 0
     while running:
         # Event handling
         for event in pygame.event.get():
@@ -54,7 +55,11 @@ def control(podtp: Podtp):
             pass
         else:
             print_t(f'vx: {vx} vy: {vy} vr: {vr}')
-        podtp.send_command_hover(0, vx, vy, vr)
+
+        if pygame.time.get_ticks() - last_command_time > 200:
+            podtp.send_command_hover(0, vx, vy, vr)
+            last_command_time = pygame.time.get_ticks()
+        print_t(podtp.sensor_data.state)
         # You can update your game logic and draw here
         # For this example, we'll just fill the screen with black
         # screen.fill((0, 0, 0))

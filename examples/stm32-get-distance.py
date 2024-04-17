@@ -27,7 +27,6 @@ def data_gen(podtp: Podtp):
     """Generator function to yield data packets."""
     while True:
         data = podtp.sensor_data.depth
-        print(f"State: {state}")
         for i in range(0, len(data)):
             for j in range(0, len(data[i])):
                 if data[i][j] & 0x8000:

@@ -13,7 +13,7 @@ from .frame_reader import FrameReader
 from .camera_config import CameraConfig
 from .sensor import Sensor
 
-COMMAND_TIMEOUT_MS = 600
+COMMAND_TIMEOUT_MS = 800
 
 class Podtp:
     def __init__(self, config: dict):
@@ -155,7 +155,7 @@ class Podtp:
         return self.send_packet(packet)
     
     def send_command_position(self, x: float, y: float, z: float, yaw: float) -> bool:
-        packet = PodtpPacket().set_header(PodtpType.COMMAND, PodtpPort.COMMAND_POSITION)
+        packet = PodtpPacket().set_header(PodtpType.COMMAND, PodtpPort.COMMAND_POSITION, ack=True)
         size = struct.calcsize('<ffff')
         packet.data[:size] = struct.pack('<ffff', x, y, z, yaw)
         packet.length = 1 + size
