@@ -34,6 +34,7 @@ class FrameReader:
         index = 0
         length = len(data) if data else 0
         get_frame = False
+
         while index < length:
             match self.rx_state:
                 case RxState.IMAGE_STATE_START_1:
@@ -65,7 +66,10 @@ class FrameReader:
                     self.image_index += copy_bytes
                     index += copy_bytes
                     if self.image_index == self.image_size:
-                        self.frame = np.array(Image.open(io.BytesIO(self.image_bytes)).rotate(180))
+                        try:
+                            self.frame = np.array(Image.open(io.BytesIO(self.image_bytes)).rotate(180))
+                        except:
+                            print('Failed to open image')
                         self.rx_state = RxState.IMAGE_STATE_START_1
                         get_frame = True
                         # duration = time.time() - self.timestamp

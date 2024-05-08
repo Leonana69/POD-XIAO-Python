@@ -10,14 +10,24 @@ class WifiLink:
     def __init__(self, server_ip: str, server_port: int):
         self.server_ip = server_ip
         self.server_port = server_port
-        self.client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.client_socket.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)
+        if server_ip == '255.255.255.255':
+            self.use_udp = True
+            self.client_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            self.client_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+            self.client_socket.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
+        else:
+            self.use_udp = False
+            self.client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            self.client_socket.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)
         self.client_socket.settimeout(LINK_MAX_WAIT_TIME / 1000)
         self.client_connected = False
 
     def connect(self) -> bool:
         try:
-            self.client_socket.connect((self.server_ip, self.server_port))
+            if self.use_udp:
+                self.client_socket.bind(('', self.server_port))
+            else:
+                self.client_socket.connect((self.server_ip, self.server_port))
             self.client_connected = True
             print_t(f'Connected to {self.server_ip}:{self.server_port}')
             return True
@@ -51,7 +61,11 @@ class WifiLink:
             if not readable:
                 return None
 
-            data = self.client_socket.recv(length)
+            if self.use_udp:
+                data, _ = self.client_socket.recvfrom(length)
+                print_t(f'Received {len(data)} bytes from {self.server_ip}:{self.server_port}')
+            else:
+                data = self.client_socket.recv(length)
             if not data:
                 print_t("Connection closed by the server.")
                 return None

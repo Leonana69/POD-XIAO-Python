@@ -14,7 +14,7 @@ def main():
         sensor = podtp.sensor_data
         while True:
             frame = sensor.frame
-            print(sensor.depth.data)
+            # print(sensor.depth.data)
             if frame is not None:
                 frame = np.array(frame)
                 cv2_image = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
