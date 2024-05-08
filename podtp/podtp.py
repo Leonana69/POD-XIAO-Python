@@ -104,7 +104,7 @@ class Podtp:
             frame = self.frame_reader.process(self.stream_link.receive(65535))
             if frame is not None:
                 self.sensor_data.frame = frame
-            time.sleep(0.05)
+            # time.sleep(0.05)
 
     def get_packet(self, type: PodtpType, timeout = 1) -> Optional[PodtpPacket]:
         try:

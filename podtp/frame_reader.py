@@ -72,4 +72,3 @@ class FrameReader:
                         # print(f'Image size {self.image_size}, time: {duration}, data rate: {self.image_size / (duration):.2f} bytes/s')
                         self.image_count += 1
         return self.frame if get_frame else None
-                    

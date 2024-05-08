@@ -61,6 +61,7 @@ def control(podtp: Podtp):
             podtp.send_command_hover(0, vx, vy, vr)
             last_command_time = pygame.time.get_ticks()
         print_t(podtp.sensor_data.state.data)
+        print_t(podtp.sensor_data.depth.data)
         # You can update your game logic and draw here
         # For this example, we'll just fill the screen with black
         # screen.fill((0, 0, 0))
