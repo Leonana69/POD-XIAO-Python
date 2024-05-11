@@ -125,7 +125,7 @@ if __name__ == '__main__':
     with open('config.json', 'r') as file:
         config = json.loads(file.read())
     parser = argparse.ArgumentParser(description='Upload firmware to STM32 via ESP32 over WiFi')
-    parser.add_argument('file', help='Binary file to upload', type=str)
+    parser.add_argument('-f', '--file', help='Binary file to upload', type=str, default='POD-Firmware-H7.bin')
     
     args = parser.parse_args()
     ip = config['ip']

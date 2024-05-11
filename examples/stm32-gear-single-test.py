@@ -19,9 +19,12 @@ def main():
             print_t('Failed to unlock control')
         else:
             print_t('Drone unlocked')
-            for _ in range(10):
-                podtp.send_command_setpoint(0, 0, 0, 5000)
+            podtp.reset_estimator()
+            for _ in range(30):
+                # podtp.send_command_hover(0.3, 0, 0, 0)
+                podtp.send_command_setpoint(0, 0, 0, 500)
                 time.sleep(0.1)
+            
             # podtp.send_command_position(0, 0.1, 0, 0)
             # wait(podtp, 20)
             # podtp.send_command_position(-0.2, 0, 0, 0)

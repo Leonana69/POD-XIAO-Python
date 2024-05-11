@@ -8,7 +8,7 @@ def main():
     
     podtp = Podtp(config)
     if podtp.connect():
-        sleep(3)
+        sleep(10)
         podtp.disconnect()
 
 if __name__ == '__main__':

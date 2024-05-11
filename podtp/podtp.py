@@ -121,10 +121,10 @@ class Podtp:
                 return False
         return True
         
-    def stm32_enable(self, disable = False):
+    def stm32_enable(self, enable: bool):
         packet = PodtpPacket().set_header(PodtpType.ESP32, PodtpPort.ESP32_ENABLE_STM32)
         packet.length = 2
-        packet.data[0] = 0 if disable else 1
+        packet.data[0] = 1 if enable else 0
         self.send_packet(packet)
 
     def esp32_echo(self):
