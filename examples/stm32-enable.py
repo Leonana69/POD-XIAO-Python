@@ -16,7 +16,7 @@ def main():
         if args.reset:
             print('Resetting STM32')
             podtp.stm32_enable(False)
-            time.sleep(2)
+            time.sleep(0.5)
             podtp.stm32_enable(True)
         else:
             podtp.stm32_enable(not args.disable)
