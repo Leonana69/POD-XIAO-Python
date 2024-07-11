@@ -103,9 +103,12 @@ class Podtp:
 
     def stream_func(self):
         while self.stream_on:
-            seq, image = self.image_parser.process(ImagePacket(self.stream_link.receive(65535, 0.5)))
+            data = self.stream_link.receive(65535, 0.5)
+            if data is None:
+                continue
+            seq, image = self.image_parser.process(ImagePacket(data))
             if image is not None:
-                self.sensor_data.frame = image
+                self.sensor_data.frame = np.array(image)
 
     def get_packet(self, type: PodtpType, timeout = 1) -> Optional[PodtpPacket]:
         try:

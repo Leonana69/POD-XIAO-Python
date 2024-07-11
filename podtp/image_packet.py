@@ -1,5 +1,5 @@
 from PIL import Image
-import io
+import io, time
 
 IMAGE_PACKET_SIZE = 1024
 IMAGE_HEADER_SIZE = 8
@@ -81,6 +81,7 @@ class ImageParser:
     def __init__(self):
         self.image_packets = {}
         self.image = None
+        self.last_cleanup = time.time()
 
     def process(self, packet: ImagePacket) -> tuple[int, Image.Image | None]:
         seq = packet.header.seq
@@ -90,13 +91,26 @@ class ImageParser:
         data = packet.data
 
         if seq not in self.image_packets:
-            self.image_packets[seq] = [None] * total
+            self.image_packets[seq] = ([None] * total, time.time())
         
-        self.image_packets[seq][index] = data.bytes(0, size)
+        packet_buffer, _ = self.image_packets[seq]
+        packet_buffer[index] = data.bytes(0, size)
 
-        if None not in self.image_packets[seq]:
-            self.image = b''.join(self.image_packets[seq])
-            del self.image_packets[seq]
-            return seq, Image.open(io.BytesIO(self.image))
+        if None not in packet_buffer:
+            self.image = b''.join(packet_buffer)
+            del packet_buffer
+            return seq, Image.open(io.BytesIO(self.image)).rotate(180)
 
         return seq, None
+    
+    def cleanup(self):
+        current_time = time.time()
+        if current_time - self.last_cleanup < 1:
+            return
+        to_remove = []
+        for seq, (packet_buffer, timestamp) in self.image_packets.items():
+            if current_time - timestamp > 3:
+                to_remove.append(seq)
+        
+        for seq in to_remove:
+            del self.image_packets[seq]
