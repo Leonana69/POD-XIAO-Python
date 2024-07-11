@@ -3,3 +3,4 @@ podtp.egg-info
 POD-Firmware*
 cache/
 test.py
+.DS_Store

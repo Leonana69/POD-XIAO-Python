@@ -21,6 +21,7 @@ def main():
                 cv2.imshow('frame', cv2_image)
                 if cv2.waitKey(1) & 0xFF == ord('q'):
                     break
+        podtp.stop_stream()
         podtp.disconnect()
 
 if __name__ == '__main__':

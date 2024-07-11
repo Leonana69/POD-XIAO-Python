@@ -9,9 +9,9 @@ from .podtp_packet import PODTP_MAX_DATA_LEN, PodtpPacket, PodtpType, PodtpPort
 from .link import WifiLink
 from .utils import print_t
 from .podtp_parser import PodtpParser
-from .frame_reader import FrameReader
 from .camera_config import CameraConfig
 from .sensor import Sensor
+from .image_packet import ImagePacket, ImageParser
 
 COMMAND_TIMEOUT_MS = 800
 
@@ -25,8 +25,8 @@ class Podtp:
         for type in PodtpType:
             self.packet_queue[type.value] = queue.Queue()
 
-        self.stream_link = WifiLink(config["ip"], config["stream_port"])
-        self.frame_reader = FrameReader()
+        self.stream_link = WifiLink('0.0.0.0', config["stream_port"], True)
+        self.image_parser = ImageParser()
         self.stream_on = False
         self.sensor_data = Sensor()
 
@@ -49,16 +49,18 @@ class Podtp:
         self.data_link.disconnect()
 
     def start_stream(self):
-        self.reset_stream_link()
         self.config_camera(CameraConfig())
         time.sleep(0.5) # wait for the esp32 to configure the camera and close the previous TCP link
+        self.enable_stream()
         self.stream_on = self.stream_link.connect()
         if self.stream_on:
             self.stream_thread = Thread(target=self.stream_func)
             self.stream_thread.start()
 
-    def reset_stream_link(self):
-        packet = PodtpPacket().set_header(PodtpType.ESP32, PodtpPort.ESP32_RESET_STREAM_LINK)
+    def enable_stream(self, enable = True):
+        packet = PodtpPacket().set_header(PodtpType.ESP32, PodtpPort.ESP32_ENABLE_STREAM)
+        packet.length = 2
+        packet.data[0] = 1 if enable else 0
         self.send_packet(packet)
 
     def config_camera(self, config: CameraConfig):
@@ -73,7 +75,7 @@ class Podtp:
             return
         self.stream_on = False
         self.stream_thread.join()
-        self.stream_link.disconnect()
+        self.enable_stream(False)
 
     def keep_alive_func(self):
         while self.connected:
@@ -101,10 +103,9 @@ class Podtp:
 
     def stream_func(self):
         while self.stream_on:
-            frame = self.frame_reader.process(self.stream_link.receive(65535))
-            if frame is not None:
-                self.sensor_data.frame = frame
-            # time.sleep(0.05)
+            seq, image = self.image_parser.process(ImagePacket(self.stream_link.receive(65535, 0.5)))
+            if image is not None:
+                self.sensor_data.frame = image
 
     def get_packet(self, type: PodtpType, timeout = 1) -> Optional[PodtpPacket]:
         try:

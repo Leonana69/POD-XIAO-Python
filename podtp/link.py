@@ -7,19 +7,21 @@ from .utils import print_t
 LINK_MAX_WAIT_TIME = 5000
 
 class WifiLink:
-    def __init__(self, server_ip: str, server_port: int):
+    def __init__(self, server_ip: str, server_port: int, use_udp = False):
         self.server_ip = server_ip
         self.server_port = server_port
         if server_ip == '255.255.255.255':
             self.use_udp = True
             self.client_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-            self.client_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
             self.client_socket.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
+        elif use_udp:
+            self.use_udp = True
+            self.client_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         else:
             self.use_udp = False
             self.client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             self.client_socket.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)
-        self.client_socket.settimeout(LINK_MAX_WAIT_TIME / 1000)
+            self.client_socket.settimeout(LINK_MAX_WAIT_TIME / 1000)
         self.client_connected = False
 
     def connect(self) -> bool:
@@ -36,7 +38,8 @@ class WifiLink:
             return False
 
     def disconnect(self):
-        self.client_socket.close()
+        if not self.use_udp:
+            self.client_socket.close()
         self.client_connected = False
         print_t(f'Disconnected from {self.server_ip}:{self.server_port}')
 
@@ -63,7 +66,7 @@ class WifiLink:
 
             if self.use_udp:
                 data, _ = self.client_socket.recvfrom(length)
-                print_t(f'Received {len(data)} bytes from {self.server_ip}:{self.server_port}')
+                # print_t(f'Received {len(data)} bytes from {self.server_ip}:{self.server_port}')
             else:
                 data = self.client_socket.recv(length)
             if not data:
