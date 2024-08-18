@@ -25,13 +25,13 @@ def main():
                 # podtp.send_command_setpoint(0, 0, 0, 1000)
                 time.sleep(0.1)
 
-            for _ in range(30):
-                podtp.send_command_hover(0.3, 0.2, 0, 0)
-                # podtp.send_command_setpoint(0, 0, 0, 1000)
-                time.sleep(0.1)
+            # for _ in range(30):
+            #     podtp.send_command_hover(0.3, 0.2, 0, 0)
+            #     # podtp.send_command_setpoint(0, 0, 0, 1000)
+            #     time.sleep(0.1)
             
             for _ in range(30):
-                podtp.send_command_hover(0.3, -0.2, 0, 0)
+                podtp.send_command_hover(0.8, 0, 0, 0)
                 # podtp.send_command_setpoint(0, 0, 0, 1000)
                 time.sleep(0.1)
             

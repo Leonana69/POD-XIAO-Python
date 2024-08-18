@@ -99,8 +99,11 @@ class ImageParser:
         if None not in packet_buffer:
             self.image = b''.join(packet_buffer)
             del packet_buffer
-            return seq, Image.open(io.BytesIO(self.image)).rotate(180)
-
+            try:
+                img = Image.open(io.BytesIO(self.image)).rotate(180)
+                return seq, img
+            except Exception as e:
+                return seq, None
         return seq, None
     
     def cleanup(self):
