@@ -20,20 +20,24 @@ def main():
         else:
             print_t('Drone unlocked')
             podtp.reset_estimator()
-            for _ in range(30):
-                podtp.send_command_hover(0.3, 0, 0, 0)
-                # podtp.send_command_setpoint(0, 0, 0, 1000)
-                time.sleep(0.1)
+            
+            podtp.send_command_hover(0.4, 0, 0, 0)
+            time.sleep(4)
+
+            # for _ in range(40):
+            #     podtp.send_command_hover(0.4, 0, 0, 0)
+            #     time.sleep(0.1)
+            
 
             # for _ in range(30):
             #     podtp.send_command_hover(0.3, 0.2, 0, 0)
             #     # podtp.send_command_setpoint(0, 0, 0, 1000)
             #     time.sleep(0.1)
             
-            for _ in range(30):
-                podtp.send_command_hover(0.8, 0, 0, 0)
-                # podtp.send_command_setpoint(0, 0, 0, 1000)
-                time.sleep(0.1)
+            # for _ in range(30):
+            #     podtp.send_command_hover(0.8, 0, 0, 0)
+            #     # podtp.send_command_setpoint(0, 0, 0, 1000)
+            #     time.sleep(0.1)
             
 
             for _ in range(15):

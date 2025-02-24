@@ -5,6 +5,15 @@ from typing import Optional
 from threading import Thread
 import numpy as np
 from numpy.typing import NDArray
+import logging
+
+logging.basicConfig(
+    level=logging.DEBUG,  # Set the logging level
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",  # Log format
+    filename="app.log",  # Log to a file
+    filemode="w",  # Overwrite the file each time
+)
+
 from .podtp_packet import PODTP_MAX_DATA_LEN, PodtpPacket, PodtpType, PodtpPort
 from .link import WifiLink
 from .utils import print_t
@@ -13,7 +22,7 @@ from .camera_config import CameraConfig
 from .sensor import Sensor
 from .image_packet import ImagePacket, ImageParser
 
-COMMAND_TIMEOUT_MS = 800
+COMMAND_TIMEOUT_MS = 450
 
 class Podtp:
     def __init__(self, config: dict):
@@ -93,6 +102,7 @@ class Podtp:
             if packet:
                 if packet.header.type == PodtpType.LOG:
                     if packet.header.port == PodtpPort.LOG_STRING:
+                        logging.debug(f'Log: {packet.data[:packet.length - 1].decode()}'.strip('\n'))
                         print_t(f'Log: {packet.data[:packet.length - 1].decode()}', end='')
                     elif packet.header.port == PodtpPort.LOG_DISTANCE:
                         self.sensor_data.depth = struct.unpack('<I64h', packet.data.bytes(0, 132))
@@ -131,15 +141,21 @@ class Podtp:
         packet.data[0] = 1 if enable else 0
         self.send_packet(packet)
 
-    def esp32_echo(self):
+    def esp32_echo(self, message: str = 'Hello, ESP32!'):
         packet = PodtpPacket().set_header(PodtpType.ESP32, PodtpPort.ESP32_ECHO)
+        packet.length = len(message) + 1
+        packet.data[:len(message)] = message.encode()
         self.send_packet(packet)
         packet = self.get_packet(PodtpType.ESP32)
+        if packet:
+            print_t(f'Echo: {packet.data[:packet.length - 1].decode()}')
+        else:
+            print_t('No response')
 
     def send_ctrl_lock(self, lock: bool) -> bool:
         packet = PodtpPacket().set_header(PodtpType.CTRL,
                                           PodtpPort.CTRL_LOCK,
-                                          ack=True)
+                                          ack=False)
         packet.length = 2
         packet.data[0] = 1 if lock else 0
         return self.send_packet(packet)

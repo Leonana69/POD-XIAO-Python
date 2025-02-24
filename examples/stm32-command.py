@@ -12,12 +12,29 @@ def main():
             print_t('Failed to unlock control')
         else:
             print_t('Drone unlocked')
+            # count = 0
+            # while count < 5:
+            #     # print_t(f'Sending setpoint {count}')
+            #     # podtp.send_command_hover(0.5, 0, 0, 0)
+            #     podtp.send_command_setpoint(0, 0, 0, 11800)
+            #     time.sleep(0.2)
+            #     count += 1
+
             count = 0
-            while count < 3:
-                print_t(f'Sending setpoint {count}')
-                # podtp.send_command_hover(0.5, 0, 0, 0)
-                podtp.send_command_setpoint(0, 0, 0, 11000)
-                time.sleep(0.1)
+            while count < 50:
+                # print_t(f'Sending setpoint {count}')
+                podtp.send_command_hover(0.8, 0, 0, 0)
+                # podtp.send_command_position(0, 0, 0.5, 0)
+                # podtp.send_command_setpoint(0, 0, 0, 11800)
+                time.sleep(0.2)
+                count += 1
+
+            # gentle land
+            count = 0
+            while count < 5:
+                # print_t(f'Sending setpoint {count}')
+                podtp.send_command_setpoint(0, 0, 0, 11400)
+                time.sleep(0.2)
                 count += 1
             
         podtp.disconnect()
