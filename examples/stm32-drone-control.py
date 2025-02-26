@@ -18,7 +18,9 @@ def control(podtp: Podtp):
     vx = 0
     vy = 0
     vr = 0
+    height = 0.5
     last_command_time = 0
+    last_height_command_time = 0
     while running:
         # Event handling
         for event in pygame.event.get():
@@ -36,9 +38,17 @@ def control(podtp: Podtp):
                 elif event.key == pygame.K_d:
                     vy = -SPEED
                 elif event.key == pygame.K_q:
-                    vr = 10
+                    vr = 30
                 elif event.key == pygame.K_e:
-                    vr = -10
+                    vr = -30
+                elif event.key == pygame.K_SPACE:
+                    if pygame.time.get_ticks() - last_height_command_time > 1000:
+                        height += 0.1
+                        last_height_command_time = pygame.time.get_ticks()
+                elif event.key == pygame.K_LSHIFT:
+                    if pygame.time.get_ticks() - last_height_command_time > 1000:
+                        height -= 0.1
+                        last_height_command_time = pygame.time.get_ticks()
             elif event.type == pygame.KEYUP:
                 if event.key == pygame.K_w:
                     vx = 0
@@ -58,7 +68,7 @@ def control(podtp: Podtp):
             print_t(f'vx: {vx} vy: {vy} vr: {vr}')
 
         if pygame.time.get_ticks() - last_command_time > 200:
-            podtp.send_command_hover(0.5, vx, vy, vr)
+            podtp.send_command_hover(height, vx, vy, vr)
             last_command_time = pygame.time.get_ticks()
         # print_t(podtp.sensor_data.state.data)
         # print_t(podtp.sensor_data.depth.data)

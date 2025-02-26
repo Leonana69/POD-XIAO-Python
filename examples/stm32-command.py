@@ -21,9 +21,9 @@ def main():
             #     count += 1
 
             count = 0
-            while count < 50:
+            while count < 40:
                 # print_t(f'Sending setpoint {count}')
-                podtp.send_command_hover(0.8, 0, 0, 0)
+                podtp.send_command_hover(0.5, 0, 0, 0)
                 # podtp.send_command_position(0, 0, 0.5, 0)
                 # podtp.send_command_setpoint(0, 0, 0, 11800)
                 time.sleep(0.2)
@@ -33,7 +33,7 @@ def main():
             count = 0
             while count < 5:
                 # print_t(f'Sending setpoint {count}')
-                podtp.send_command_setpoint(0, 0, 0, 11400)
+                podtp.send_command_setpoint(0, 0, 0, 15000)
                 time.sleep(0.2)
                 count += 1
             
