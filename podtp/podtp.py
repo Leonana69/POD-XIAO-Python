@@ -174,6 +174,13 @@ class Podtp:
         packet.length = 1 + size
         return self.send_packet(packet)
     
+    def send_command_velocity(self, vx: float, vy: float, vz: float, vyaw: float) -> bool:
+        packet = PodtpPacket().set_header(PodtpType.COMMAND, PodtpPort.COMMAND_VELOCITY)
+        size = struct.calcsize('<ffff')
+        packet.data[:size] = struct.pack('<ffff', vx, vy, vz, vyaw)
+        packet.length = 1 + size
+        return self.send_packet(packet)
+    
     def send_command_position(self, x: float, y: float, z: float, yaw: float) -> bool:
         packet = PodtpPacket().set_header(PodtpType.COMMAND, PodtpPort.COMMAND_POSITION, ack=True)
         size = struct.calcsize('<ffff')

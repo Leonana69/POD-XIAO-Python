@@ -21,22 +21,35 @@ def main():
             #     count += 1
 
             count = 0
-            while count < 40:
+            while count < 20:
                 # print_t(f'Sending setpoint {count}')
-                podtp.send_command_hover(0.5, 0, 0, 0)
-                # podtp.send_command_position(0, 0, 0.5, 0)
-                # podtp.send_command_setpoint(0, 0, 0, 11800)
+                # podtp.send_command_hover(0.5, 0, 0, 0)
+                podtp.send_command_position(0, 0, 0.5, 0)
+                # podtp.send_command_setpoint(0, 0, 0, 11400)
                 time.sleep(0.2)
                 count += 1
 
+            # print_t('Landing')
+            # count = 0
+            # while count < 10:
+            #     # print_t(f'Sending setpoint {count}')
+            #     podtp.send_command_velocity(0, 0, 1.0, 0)
+            #     # podtp.send_command_position(0, 0, 0.5, 0)
+            #     # podtp.send_command_setpoint(0, 0, 0, 11800)
+            #     time.sleep(0.2)
+            #     count += 1
+
             # gentle land
             count = 0
-            while count < 5:
+            while count < 10:
                 # print_t(f'Sending setpoint {count}')
-                podtp.send_command_setpoint(0, 0, 0, 15000)
+                # podtp.send_command_velocity(0, 0, -0.3, 0)
+                podtp.send_command_setpoint(0, 0, 0, 11000)
                 time.sleep(0.2)
                 count += 1
-            
+
+            podtp.send_command_setpoint(0, 0, 0, 0)
+        # time.sleep(10)
         podtp.disconnect()
 
 if __name__ == '__main__':

@@ -28,6 +28,7 @@ class PodtpPort(Enum):
     COMMAND_LAND = 0x2
     COMMAND_HOVER = 0x3
     COMMAND_POSITION = 0x4
+    COMMAND_VELOCITY = 0x5
 
     # LOG
     LOG_STRING = 0x0

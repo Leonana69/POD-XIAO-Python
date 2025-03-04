@@ -4,7 +4,7 @@ import pygame
 import sys
 
 def control(podtp: Podtp):
-    podtp.start_stream()
+    # podtp.start_stream()
     # podtp.reset_estimator()
     # Initialize Pygame
     pygame.init()
@@ -18,9 +18,9 @@ def control(podtp: Podtp):
     vx = 0
     vy = 0
     vr = 0
+    vz = 0
     height = 0.5
     last_command_time = 0
-    last_height_command_time = 0
     while running:
         # Event handling
         for event in pygame.event.get():
@@ -42,13 +42,9 @@ def control(podtp: Podtp):
                 elif event.key == pygame.K_e:
                     vr = -30
                 elif event.key == pygame.K_SPACE:
-                    if pygame.time.get_ticks() - last_height_command_time > 1000:
-                        height += 0.1
-                        last_height_command_time = pygame.time.get_ticks()
+                    vz = 0.2
                 elif event.key == pygame.K_LSHIFT:
-                    if pygame.time.get_ticks() - last_height_command_time > 1000:
-                        height -= 0.1
-                        last_height_command_time = pygame.time.get_ticks()
+                    vz = -0.2
             elif event.type == pygame.KEYUP:
                 if event.key == pygame.K_w:
                     vx = 0
@@ -62,12 +58,20 @@ def control(podtp: Podtp):
                     vr = 0
                 elif event.key == pygame.K_e:
                     vr = 0
+                elif event.key == pygame.K_SPACE:
+                    vz = 0
+                elif event.key == pygame.K_LSHIFT:
+                    vz = 0
         if vx == 0 and vy == 0 and vr == 0:
             pass
         else:
             print_t(f'vx: {vx} vy: {vy} vr: {vr}')
 
-        if pygame.time.get_ticks() - last_command_time > 200:
+        
+        dt = pygame.time.get_ticks() - last_command_time
+        if dt > 200:
+            if vz != 0:
+                height += vz * dt / 1000
             podtp.send_command_hover(height, vx, vy, vr)
             last_command_time = pygame.time.get_ticks()
         # print_t(podtp.sensor_data.state.data)
