@@ -155,7 +155,7 @@ class Podtp:
     def send_ctrl_lock(self, lock: bool) -> bool:
         packet = PodtpPacket().set_header(PodtpType.CTRL,
                                           PodtpPort.CTRL_LOCK,
-                                          ack=False)
+                                          ack=True)
         packet.length = 2
         packet.data[0] = 1 if lock else 0
         return self.send_packet(packet)
@@ -182,7 +182,7 @@ class Podtp:
         return self.send_packet(packet)
     
     def send_command_position(self, x: float, y: float, z: float, yaw: float) -> bool:
-        packet = PodtpPacket().set_header(PodtpType.COMMAND, PodtpPort.COMMAND_POSITION, ack=True)
+        packet = PodtpPacket().set_header(PodtpType.COMMAND, PodtpPort.COMMAND_POSITION)
         size = struct.calcsize('<ffff')
         packet.data[:size] = struct.pack('<ffff', x, y, z, yaw)
         packet.length = 1 + size

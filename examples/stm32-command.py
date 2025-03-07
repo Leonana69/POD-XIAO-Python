@@ -22,6 +22,7 @@ def main():
 
             count = 0
             while count < 20:
+                print_t(f'Sending setpoint {count}')
                 # print_t(f'Sending setpoint {count}')
                 # podtp.send_command_hover(0.5, 0, 0, 0)
                 podtp.send_command_position(0, 0, 0.5, 0)
@@ -29,7 +30,7 @@ def main():
                 time.sleep(0.2)
                 count += 1
 
-            # print_t('Landing')
+            print_t('Landing')
             # count = 0
             # while count < 10:
             #     # print_t(f'Sending setpoint {count}')

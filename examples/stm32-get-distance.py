@@ -5,7 +5,9 @@ from podtp import PodtpType
 from matplotlib import pyplot as plt
 from matplotlib.animation import FuncAnimation
 import numpy as np
+import logging
 
+logging.getLogger('matplotlib.font_manager').disabled = True
 # Configuration for animation
 fig, ax = plt.subplots(figsize=(8, 8))
 cmap = plt.get_cmap('viridis')  # Get the colormap
@@ -44,5 +46,6 @@ def main():
         ani = FuncAnimation(fig, update_plot, frames=lambda: data_gen(podtp), repeat=False)
         plt.show()
         podtp.disconnect()
+
 if __name__ == '__main__':
     main()

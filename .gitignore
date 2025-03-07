@@ -4,3 +4,4 @@ POD-Firmware*
 cache/
 test.py
 .DS_Store
+app.log

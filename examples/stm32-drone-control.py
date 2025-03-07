@@ -1,14 +1,18 @@
 import json
 from podtp import Podtp, print_t
 import pygame
-import sys
+import sys, time
 
 def control(podtp: Podtp):
-    # podtp.start_stream()
+    podtp.start_stream()
     # podtp.reset_estimator()
     # Initialize Pygame
     pygame.init()
     clock = pygame.time.Clock()
+
+    # save depth and state data
+    depth_data = open('cache/depth.txt', 'w')
+    state_data = open('cache/state.txt', 'w')
 
     # Set up the display
     screen = pygame.display.set_mode((800, 600))
@@ -62,10 +66,10 @@ def control(podtp: Podtp):
                     vz = 0
                 elif event.key == pygame.K_LSHIFT:
                     vz = 0
-        if vx == 0 and vy == 0 and vr == 0:
-            pass
-        else:
-            print_t(f'vx: {vx} vy: {vy} vr: {vr}')
+        # if vx == 0 and vy == 0 and vr == 0:
+        #     pass
+        # else:
+        #     print_t(f'vx: {vx} vy: {vy} vr: {vr}')
 
         
         dt = pygame.time.get_ticks() - last_command_time
@@ -73,9 +77,12 @@ def control(podtp: Podtp):
             if vz != 0:
                 height += vz * dt / 1000
             podtp.send_command_hover(height, vx, vy, vr)
+            # podtp.send_command_setpoint(0, 0, 0, 0)
             last_command_time = pygame.time.get_ticks()
-        # print_t(podtp.sensor_data.state.data)
-        # print_t(podtp.sensor_data.depth.data)
+        print(podtp.sensor_data.state.timestamp, podtp.sensor_data.state.data)
+        print(podtp.sensor_data.depth.timestamp, podtp.sensor_data.depth.data)
+        depth_data.write(f'{podtp.sensor_data.depth.timestamp}: {podtp.sensor_data.depth.data}\n\n')
+        state_data.write(f'{podtp.sensor_data.state.timestamp}: {podtp.sensor_data.state.data}\n\n')
         # You can update your game logic and draw here
         # For this example, we'll just fill the screen with black
         # screen.fill((0, 0, 0))
@@ -83,8 +90,15 @@ def control(podtp: Podtp):
         screen.blit(image_surface, (0, 0))
         # Update the display
         pygame.display.flip()
-        clock.tick(50)
+        clock.tick(10)
 
+    count = 0
+    while count < 10:
+        # print_t(f'Sending setpoint {count}')
+        # podtp.send_command_velocity(0, 0, -0.3, 0)
+        podtp.send_command_setpoint(0, 0, 0, 11000)
+        time.sleep(0.2)
+        count += 1
     # Quit Pygame
     pygame.quit()
     sys.exit()
