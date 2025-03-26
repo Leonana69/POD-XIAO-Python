@@ -78,8 +78,8 @@ def control(podtp: Podtp):
         if dt > 200:
             if vz != 0:
                 height += vz * dt / 1000
-            # podtp.send_command_hover(height, vx, vy, vr)
-            podtp.send_command_setpoint(0, 0, 0, 0)
+            podtp.send_command_hover(height, vx, vy, vr)
+            # podtp.send_command_setpoint(0, 0, 0, 0)
             last_command_time = pygame.time.get_ticks()
         print(podtp.sensor_data.state.timestamp, podtp.sensor_data.state.data)
         print(podtp.sensor_data.depth.timestamp, podtp.sensor_data.depth.data)
@@ -90,7 +90,7 @@ def control(podtp: Podtp):
         # screen.fill((0, 0, 0))
         image_surface = pygame.surfarray.make_surface(podtp.sensor_data.frame.transpose(1, 0, 2))
         # save the image
-        pygame.image.save(image_surface, f'cache/image/{counter}.png')
+        pygame.image.save(image_surface, f'cache/image/{podtp.sensor_data.state.timestamp}.png')
         counter += 1
 
         screen.blit(image_surface, (0, 0))

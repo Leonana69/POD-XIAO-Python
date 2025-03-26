@@ -128,9 +128,7 @@ if __name__ == '__main__':
     parser.add_argument('-f', '--file', help='Binary file to upload', type=str, default='POD-Firmware-H7.bin')
     
     args = parser.parse_args()
-    ip = config['ip']
-    port = config['port']
-    print_t(f'Uploading {args.file} to {ip}:{port}')
+    print_t(f'Uploading {args.file}')
 
     podtp = Podtp(config)
     if not podtp.connect():
