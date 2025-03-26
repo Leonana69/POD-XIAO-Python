@@ -26,6 +26,8 @@ COMMAND_TIMEOUT_MS = 450
 
 class Podtp:
     def __init__(self, config: dict):
+        if 'ip_index' in config:
+            config["ip"] = config["ip_list"][config["ip_index"]]
         self.data_link = WifiLink(config["ip"], config["port"])
         self.packet_parser = PodtpParser()
         self.packet_queue = {}

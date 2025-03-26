@@ -1,4 +1,5 @@
 from enum import Enum
+import numpy as np
 import struct
 
 class CameraConfig:
@@ -10,8 +11,17 @@ class CameraConfig:
         FRAMESIZE_SVGA = 9     # 800x600
         FRAMESIZE_XGA = 10     # 1024x768
         FRAMESIZE_HD = 11      # 1280x720
+
+    K = np.array([[454.19405878,   0.,         617.24234876],
+                  [  0.,         452.65234296, 299.6066995 ],
+                  [  0.,           0.,           1.        ]])
     
-    def __init__(self, on: int = 1, frame_size: FrameSize = FrameSize.FRAMESIZE_VGA, \
+    D = np.array([[ 0.47264424],
+                  [ 0.96219725],
+                  [-2.22589356],
+                  [ 1.31717773]])
+    
+    def __init__(self, on: int = 1, frame_size: FrameSize = FrameSize.FRAMESIZE_HD, \
                 quality: int = 12, brightness: int = 3, contrast: int = 3, \
                 saturation: int = 0, sharpness: int = 2) -> None:
         self.on = on

@@ -15,7 +15,7 @@ def control(podtp: Podtp):
     state_data = open('cache/state.txt', 'w')
 
     # Set up the display
-    screen = pygame.display.set_mode((800, 600))
+    screen = pygame.display.set_mode((1280, 720))
     pygame.display.set_caption('Drone Control')
     running = True
     SPEED = 0.8
@@ -25,6 +25,8 @@ def control(podtp: Podtp):
     vz = 0
     height = 0.5
     last_command_time = 0
+
+    counter = 0
     while running:
         # Event handling
         for event in pygame.event.get():
@@ -76,8 +78,8 @@ def control(podtp: Podtp):
         if dt > 200:
             if vz != 0:
                 height += vz * dt / 1000
-            podtp.send_command_hover(height, vx, vy, vr)
-            # podtp.send_command_setpoint(0, 0, 0, 0)
+            # podtp.send_command_hover(height, vx, vy, vr)
+            podtp.send_command_setpoint(0, 0, 0, 0)
             last_command_time = pygame.time.get_ticks()
         print(podtp.sensor_data.state.timestamp, podtp.sensor_data.state.data)
         print(podtp.sensor_data.depth.timestamp, podtp.sensor_data.depth.data)
@@ -87,8 +89,11 @@ def control(podtp: Podtp):
         # For this example, we'll just fill the screen with black
         # screen.fill((0, 0, 0))
         image_surface = pygame.surfarray.make_surface(podtp.sensor_data.frame.transpose(1, 0, 2))
+        # save the image
+        pygame.image.save(image_surface, f'cache/image/{counter}.png')
+        counter += 1
+
         screen.blit(image_surface, (0, 0))
-        # Update the display
         pygame.display.flip()
         clock.tick(10)
 
