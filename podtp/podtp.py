@@ -44,9 +44,9 @@ class Podtp:
     def connect(self) -> bool:
         self.connected = self.data_link.connect()
         if self.connected:
-            self.packet_thread = Thread(target=self.receive_packets_func)
+            self.packet_thread = Thread(target=self._receive_packets_func)
             self.packet_thread.start()
-            self.keep_alive_thread = Thread(target=self.keep_alive_func)
+            self.keep_alive_thread = Thread(target=self._keep_alive_func)
             self.keep_alive_thread.start()
         return self.connected
 
@@ -60,44 +60,44 @@ class Podtp:
         self.data_link.disconnect()
 
     def start_stream(self):
-        self.config_camera(CameraConfig())
+        self._config_camera(CameraConfig())
         time.sleep(0.5) # wait for the esp32 to configure the camera and close the previous TCP link
-        self.enable_stream()
+        self._enable_stream()
         self.stream_on = self.stream_link.connect()
         if self.stream_on:
-            self.stream_thread = Thread(target=self.stream_func)
+            self.stream_thread = Thread(target=self._stream_func)
             self.stream_thread.start()
 
-    def enable_stream(self, enable = True):
+    def _enable_stream(self, enable = True):
         packet = PodtpPacket().set_header(PodtpType.ESP32, PodtpPort.ESP32_ENABLE_STREAM)
         packet.length = 2
         packet.data[0] = 1 if enable else 0
-        self.send_packet(packet)
+        self._send_packet(packet)
 
-    def config_camera(self, config: CameraConfig):
+    def _config_camera(self, config: CameraConfig):
         packet = PodtpPacket().set_header(PodtpType.ESP32, PodtpPort.ESP32_CONFIG_CAMERA)
         config_bytes = config.pack()
         packet.length = 1 + len(config_bytes)
         packet.data[:len(config_bytes)] = config_bytes
-        self.send_packet(packet)
+        self._send_packet(packet)
 
     def stop_stream(self):
         if not self.stream_on:
             return
         self.stream_on = False
         self.stream_thread.join()
-        self.enable_stream(False)
+        self._enable_stream(False)
 
-    def keep_alive_func(self):
+    def _keep_alive_func(self):
         while self.connected:
             if self.keep_alive:
                 if time.time() - self.last_packet_time > COMMAND_TIMEOUT_MS / 1000:
                     self.last_packet_time = time.time()
                     packet = PodtpPacket().set_header(PodtpType.CTRL, PodtpPort.CTRL_KEEP_ALIVE)
-                    self.send_packet(packet)
+                    self._send_packet(packet)
             time.sleep(0.05)
 
-    def receive_packets_func(self):
+    def _receive_packets_func(self):
         while self.connected:
             self.packet_parser.process(self.data_link.receive(PODTP_MAX_DATA_LEN + 1))
             packet = self.packet_parser.get_packet()
@@ -115,26 +115,26 @@ class Podtp:
             else:
                 self.packet_queue[packet.header.type].put(packet)
 
-    def stream_func(self):
+    def _stream_func(self):
         while self.stream_on:
             data = self.stream_link.receive(65535, 0.5)
             if data is None:
                 continue
-            seq, image = self.image_parser.process(ImagePacket(data))
+            _, image = self.image_parser.process(ImagePacket(data))
             if image is not None:
                 self.sensor_data.frame = np.array(image)
 
-    def get_packet(self, type: PodtpType, timeout = 1) -> Optional[PodtpPacket]:
+    def _get_packet(self, type: PodtpType, timeout = 1) -> Optional[PodtpPacket]:
         try:
             return self.packet_queue[type.value].get(timeout = timeout)
         except queue.Empty:
             return None
     
-    def send_packet(self, packet: PodtpPacket, timeout = 2) -> bool:
+    def _send_packet(self, packet: PodtpPacket, timeout = 2) -> bool:
         self.last_packet_time = time.time()
         self.data_link.send(packet.pack())
         if packet.header.ack:
-            packet = self.get_packet(PodtpType.ACK, timeout)
+            packet = self._get_packet(PodtpType.ACK, timeout)
             if not packet or packet.header.port != PodtpPort.ACK_OK:
                 return False
         return True
@@ -143,18 +143,26 @@ class Podtp:
         packet = PodtpPacket().set_header(PodtpType.ESP32, PodtpPort.ESP32_ENABLE_STM32)
         packet.length = 2
         packet.data[0] = 1 if enable else 0
-        self.send_packet(packet)
+        self._send_packet(packet)
 
     def esp32_echo(self, message: str = 'Hello, ESP32!'):
         packet = PodtpPacket().set_header(PodtpType.ESP32, PodtpPort.ESP32_ECHO)
         packet.length = len(message) + 1
         packet.data[:len(message)] = message.encode()
-        self.send_packet(packet)
-        packet = self.get_packet(PodtpType.ESP32)
+        self._send_packet(packet)
+        packet = self._get_packet(PodtpType.ESP32)
         if packet:
             print_t(f'Echo: {packet.data[:packet.length - 1].decode()}')
         else:
             print_t('No response')
+
+    def takeoff(self) -> bool:
+        packet = PodtpPacket().set_header(PodtpType.COMMAND, PodtpPort.COMMAND_TAKEOFF)
+        return self._send_packet(packet)
+    
+    def land(self) -> bool:
+        packet = PodtpPacket().set_header(PodtpType.COMMAND, PodtpPort.COMMAND_LAND)
+        return self._send_packet(packet)
 
     def send_ctrl_lock(self, lock: bool) -> bool:
         packet = PodtpPacket().set_header(PodtpType.CTRL,
@@ -162,36 +170,36 @@ class Podtp:
                                           ack=True)
         packet.length = 2
         packet.data[0] = 1 if lock else 0
-        return self.send_packet(packet)
+        return self._send_packet(packet)
 
     def send_command_setpoint(self, roll: float, pitch: float, yaw: float, thrust: float) -> bool:
         packet = PodtpPacket().set_header(PodtpType.COMMAND, PodtpPort.COMMAND_RPYT)
         size = struct.calcsize('<ffff')
         packet.data[:size] = struct.pack('<ffff', roll, pitch, yaw, thrust)
         packet.length = 1 + size
-        return self.send_packet(packet)
+        return self._send_packet(packet)
 
     def send_command_hover(self, vx: float, vy: float, vyaw: float, height: float) -> bool:
         packet = PodtpPacket().set_header(PodtpType.COMMAND, PodtpPort.COMMAND_HOVER)
         size = struct.calcsize('<ffff')
         packet.data[:size] = struct.pack('<ffff', vx, vy, vyaw, height)
         packet.length = 1 + size
-        return self.send_packet(packet)
+        return self._send_packet(packet)
     
     def send_command_velocity(self, vx: float, vy: float, vyaw: float, vz: float) -> bool:
         packet = PodtpPacket().set_header(PodtpType.COMMAND, PodtpPort.COMMAND_VELOCITY)
         size = struct.calcsize('<ffff')
         packet.data[:size] = struct.pack('<ffff', vx, vy, vyaw, vz)
         packet.length = 1 + size
-        return self.send_packet(packet)
+        return self._send_packet(packet)
     
     def send_command_position(self, x: float, y: float, z: float, yaw: float) -> bool:
         packet = PodtpPacket().set_header(PodtpType.COMMAND, PodtpPort.COMMAND_POSITION)
         size = struct.calcsize('<ffff')
         packet.data[:size] = struct.pack('<ffff', x, y, z, yaw)
         packet.length = 1 + size
-        return self.send_packet(packet)
+        return self._send_packet(packet)
     
     def reset_estimator(self) -> bool:
         packet = PodtpPacket().set_header(PodtpType.CTRL, PodtpPort.CTRL_RESET_ESTIMATOR)
-        return self.send_packet(packet)
+        return self._send_packet(packet)
