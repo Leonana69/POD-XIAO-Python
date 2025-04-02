@@ -50,27 +50,39 @@ class WifiLink:
         self.client_socket.send(data)
         return True
 
-    def receive(self, length = 4096, timeout = 0.1) -> Optional[bytes]:
+    def receive(self, length=4096, timeout=0.001) -> Optional[bytes]:
         """
-        Read from the TCP connection until a packet is returned, or a timeout occurs.
-        :param timeout: The number of seconds to wait for a complete packet.
-        :return: A PodtpPacket if one is successfully received, None otherwise.
+        Read from the TCP/UDP connection until data is received or a timeout occurs.
+        :param length: The maximum number of bytes to read.
+        :param timeout: The number of seconds to wait for data.
+        :return: The received data as bytes, or None if no data is received.
         """
         if not self.client_connected:
             print_t(f'Failed to receive packet: Not connected to {self.server_ip}:{self.server_port}')
             return None
-        while True:
+
+        try:
             readable, _, _ = select.select([self.client_socket], [], [], timeout)
             if not readable:
                 return None
 
             if self.use_udp:
-                data, _ = self.client_socket.recvfrom(length)
-                # print_t(f'Received {len(data)} bytes from {self.server_ip}:{self.server_port}')
+                data, addr = self.client_socket.recvfrom(length)
+                # Optionally validate the source address
+                # if addr[0] != self.server_ip or addr[1] != self.server_port:
+                #     print_t(f"Received packet from unexpected source: {addr}")
+                #     return None
             else:
                 data = self.client_socket.recv(length)
+
             if not data:
                 print_t("Connection closed by the server.")
+                self.disconnect()  # Ensure the connection is marked as closed
                 return None
-            else:
-                return data
+
+            return data
+
+        except (socket.timeout, ConnectionResetError, OSError) as e:
+            print_t(f"Error receiving data: {e}")
+            self.disconnect()  # Handle connection errors gracefully
+            return None

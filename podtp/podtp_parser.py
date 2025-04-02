@@ -14,10 +14,10 @@ class PodtpParser:
     def __init__(self):
         self.rx_state = RxState.PODTP_STATE_START_1
         self.length = 0
-        self.packet = PodtpPacket()
+        self.packet = None
         self.packet_queue = queue.Queue()
 
-    def process(self, data: Optional[bytes]):
+    def process(self, data: Optional[bytes]) -> Optional[PodtpPacket]:
         if data is None:
             return
         for byte in data:
@@ -25,6 +25,7 @@ class PodtpParser:
                 case RxState.PODTP_STATE_START_1:
                     if byte == PODTP_START_BYTE_1:
                         self.rx_state = RxState.PODTP_STATE_START_2
+
                 case RxState.PODTP_STATE_START_2:
                     if byte == PODTP_START_BYTE_2:
                         self.rx_state = RxState.PODTP_STATE_LENGTH
@@ -33,17 +34,20 @@ class PodtpParser:
 
                 case RxState.PODTP_STATE_LENGTH:
                     self.length = byte
+                    self.packet = PodtpPacket()
                     self.packet.length = 0
                     if self.length > PODTP_MAX_DATA_LEN or self.length == 0:
                         self.rx_state = RxState.PODTP_STATE_START_1
                     else:
                         self.rx_state = RxState.PODTP_STATE_RAW_DATA
+                        
                 case RxState.PODTP_STATE_RAW_DATA:
                     self.packet.raw[self.packet.length] = byte
                     self.packet.length += 1
                     if self.packet.length == self.length:
                         self.rx_state = RxState.PODTP_STATE_START_1
                         self.packet_queue.put(self.packet)
+                        self.packet = None
 
     def get_packet(self) -> Optional[PodtpPacket]:
         try:

@@ -101,17 +101,19 @@ class Podtp:
         while self.connected:
             self.packet_parser.process(self.data_link.receive(PODTP_MAX_DATA_LEN + 1))
             packet = self.packet_parser.get_packet()
-            if packet:
-                if packet.header.type == PodtpType.LOG:
-                    if packet.header.port == PodtpPort.LOG_STRING:
-                        logging.debug(f'Log: {packet.data[:packet.length - 1].decode()}'.strip('\n'))
-                        print_t(f'Log: {packet.data[:packet.length - 1].decode()}', end='')
-                    elif packet.header.port == PodtpPort.LOG_DISTANCE:
-                        self.sensor_data.depth = struct.unpack('<I64h', packet.data.bytes(0, 132))
-                    elif packet.header.port == PodtpPort.LOG_STATE:
-                        self.sensor_data.state = struct.unpack('<I6h', packet.data.bytes(0, 16))
-                else:
-                    self.packet_queue[packet.header.type].put(packet)
+            if packet is None:
+                continue
+
+            if packet.header.type == PodtpType.LOG:
+                if packet.header.port == PodtpPort.LOG_STRING:
+                    logging.debug(f'Log: {packet.data[:packet.length - 1].decode()}'.strip('\n'))
+                    print_t(f'Log: {packet.data[:packet.length - 1].decode()}', end='')
+                elif packet.header.port == PodtpPort.LOG_DISTANCE:
+                    self.sensor_data.depth = struct.unpack('<I64h', packet.data.bytes(0, 132))
+                elif packet.header.port == PodtpPort.LOG_STATE:
+                    self.sensor_data.state = struct.unpack('<I6h', packet.data.bytes(0, 16))
+            else:
+                self.packet_queue[packet.header.type].put(packet)
 
     def stream_func(self):
         while self.stream_on:
@@ -169,17 +171,17 @@ class Podtp:
         packet.length = 1 + size
         return self.send_packet(packet)
 
-    def send_command_hover(self, height: float, vx: float, vy: float, vyaw: float) -> bool:
+    def send_command_hover(self, vx: float, vy: float, vyaw: float, height: float) -> bool:
         packet = PodtpPacket().set_header(PodtpType.COMMAND, PodtpPort.COMMAND_HOVER)
         size = struct.calcsize('<ffff')
-        packet.data[:size] = struct.pack('<ffff', height, vx, vy, vyaw)
+        packet.data[:size] = struct.pack('<ffff', vx, vy, vyaw, height)
         packet.length = 1 + size
         return self.send_packet(packet)
     
-    def send_command_velocity(self, vx: float, vy: float, vz: float, vyaw: float) -> bool:
+    def send_command_velocity(self, vx: float, vy: float, vyaw: float, vz: float) -> bool:
         packet = PodtpPacket().set_header(PodtpType.COMMAND, PodtpPort.COMMAND_VELOCITY)
         size = struct.calcsize('<ffff')
-        packet.data[:size] = struct.pack('<ffff', vx, vy, vz, vyaw)
+        packet.data[:size] = struct.pack('<ffff', vx, vy, vyaw, vz)
         packet.length = 1 + size
         return self.send_packet(packet)
     

@@ -78,11 +78,11 @@ def control(podtp: Podtp):
         if dt > 200:
             if vz != 0:
                 height += vz * dt / 1000
-            podtp.send_command_hover(height, vx, vy, vr)
+            podtp.send_command_hover(vx, vy, vr, height)
             # podtp.send_command_setpoint(0, 0, 0, 0)
             last_command_time = pygame.time.get_ticks()
-        print(podtp.sensor_data.state.timestamp, podtp.sensor_data.state.data)
-        print(podtp.sensor_data.depth.timestamp, podtp.sensor_data.depth.data)
+        # print(podtp.sensor_data.state.timestamp, podtp.sensor_data.state.data)
+        # print(podtp.sensor_data.depth.timestamp, podtp.sensor_data.depth.data)
         depth_data.write(f'{podtp.sensor_data.depth.timestamp}: {podtp.sensor_data.depth.data}\n\n')
         state_data.write(f'{podtp.sensor_data.state.timestamp}: {podtp.sensor_data.state.data}\n\n')
         # You can update your game logic and draw here
@@ -100,7 +100,7 @@ def control(podtp: Podtp):
     count = 0
     while count < 10:
         # print_t(f'Sending setpoint {count}')
-        # podtp.send_command_velocity(0, 0, -0.3, 0)
+        # podtp.send_command_velocity(0, 0, 0, -0.3)
         podtp.send_command_setpoint(0, 0, 0, 11000)
         time.sleep(0.2)
         count += 1

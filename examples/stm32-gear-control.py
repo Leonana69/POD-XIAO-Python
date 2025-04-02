@@ -58,7 +58,7 @@ def control(podtp: Podtp):
             print_t(f'vx: {vx} vy: {vy} vr: {vr}')
 
         if pygame.time.get_ticks() - last_command_time > 200:
-            podtp.send_command_hover(0, vx, vy, vr)
+            podtp.send_command_hover(vx, vy, vr, 0)
             last_command_time = pygame.time.get_ticks()
         print_t(podtp.sensor_data.state.data)
         print_t(podtp.sensor_data.depth.data)
