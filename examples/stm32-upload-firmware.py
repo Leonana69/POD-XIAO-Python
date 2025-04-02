@@ -50,7 +50,7 @@ def send_write_flash(podtp: Podtp, flash_page, num_pages) -> bool:
 
     packet.data[:write_flash.size()] = write_flash.pack()
     packet.length = 1 + write_flash.size()
-    if not podtp.send_packet(packet, timeout=10):
+    if not podtp._send_packet(packet, timeout=10):
         print_t(f'Failed to write flash page {flash_page}')
         return False
     return True
@@ -98,7 +98,7 @@ def send_load_buffer(podtp: Podtp, file_path) -> bool:
         # print_t(f'Sent page {page} offset {offset} packet_length {packet.length} packet_load {packet_load}')
         packet.data[load_buffer.size():load_buffer.size() + packet_load] = binary[index:index + packet_load]
         packet.length = 1 + load_buffer.size() + packet_load
-        if not podtp.send_packet(packet, timeout=5):
+        if not podtp._send_packet(packet, timeout=5):
             print_t(f'Upload failed at page {page} offset {offset}')
             return False
         index += packet_load
@@ -112,14 +112,14 @@ def start_stm32_bootloader(podtp: Podtp):
                                       PodtpPort.ESP32_START_STM32_BOOTLOADER)
     packet.length = 2
     packet.data[0] = 1
-    podtp.send_packet(packet)
+    podtp._send_packet(packet)
 
 def start_stm32_firmware(podtp: Podtp):
     packet = PodtpPacket().set_header(PodtpType.ESP32,
                                       PodtpPort.ESP32_START_STM32_BOOTLOADER)
     packet.length = 2
     packet.data[0] = 0
-    podtp.send_packet(packet)
+    podtp._send_packet(packet)
 
 if __name__ == '__main__':
     with open('config.json', 'r') as file:

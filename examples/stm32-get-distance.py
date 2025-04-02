@@ -4,6 +4,7 @@ from podtp import Podtp
 from podtp import PodtpType
 from matplotlib import pyplot as plt
 from matplotlib.animation import FuncAnimation
+from matplotlib.colors import LogNorm
 import numpy as np
 import logging
 
@@ -12,7 +13,8 @@ logging.getLogger('matplotlib.font_manager').disabled = True
 fig, ax = plt.subplots(figsize=(8, 8))
 cmap = plt.get_cmap('viridis')  # Get the colormap
 data = np.zeros((8, 8))  # Initial data array
-im = ax.imshow(data, cmap=cmap, interpolation='nearest', vmin=0, vmax=3000)
+# im = ax.imshow(data, cmap=cmap, interpolation='nearest', vmin=0, vmax=3000)
+im = ax.imshow(data, cmap=cmap, interpolation='nearest', norm=LogNorm(vmin=1, vmax=3000))
 fig.colorbar(im)
 ax.set_title("8x8 Grid Representation of Sensor Data")
 ax.set_xlabel("Column Index")
@@ -32,7 +34,7 @@ def data_gen(podtp: Podtp):
         for i in range(0, len(data)):
             for j in range(0, len(data[i])):
                 if data[i][j] & 0x8000:
-                    data[i][j] = 0
+                    data[i][j] = 1
 
         yield data
         sleep(0.1)
