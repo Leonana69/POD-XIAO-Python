@@ -10,6 +10,8 @@ def main(lock: bool):
     if podtp.connect():
         if podtp.send_ctrl_lock(lock):
             print(('Lock' if lock else 'Unlock') + ' [OK]')
+        else:
+            print(('Lock' if lock else 'Unlock') + ' [FAIL]')
         podtp.disconnect()
 
 

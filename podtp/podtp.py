@@ -2,7 +2,7 @@ import queue
 import struct
 import time
 from typing import Optional
-from threading import Thread
+from threading import Thread, Lock
 import numpy as np
 from numpy.typing import NDArray
 import logging
@@ -31,6 +31,7 @@ class Podtp:
         self.data_link = WifiLink(config["ip"], config["port"])
         self.packet_parser = PodtpParser()
         self.packet_queue = {}
+        self.last_packet_time_lock = Lock()
         self.last_packet_time = time.time()
         self.keep_alive = True
         for type in PodtpType:
@@ -91,8 +92,12 @@ class Podtp:
     def _keep_alive_func(self):
         while self.connected:
             if self.keep_alive:
-                if time.time() - self.last_packet_time > COMMAND_TIMEOUT_MS / 1000:
-                    self.last_packet_time = time.time()
+                send_packet = False
+                with self.last_packet_time_lock:
+                    if time.time() - self.last_packet_time > COMMAND_TIMEOUT_MS / 1000:
+                        self.last_packet_time = time.time()
+                        send_packet = True
+                if send_packet:
                     packet = PodtpPacket().set_header(PodtpType.CTRL, PodtpPort.CTRL_KEEP_ALIVE)
                     self._send_packet(packet)
             time.sleep(0.05)
@@ -131,7 +136,8 @@ class Podtp:
             return None
     
     def _send_packet(self, packet: PodtpPacket, timeout = 2) -> bool:
-        self.last_packet_time = time.time()
+        with self.last_packet_time_lock:
+            self.last_packet_time = time.time()
         self.data_link.send(packet.pack())
         if packet.header.ack:
             packet = self._get_packet(PodtpType.ACK, timeout)

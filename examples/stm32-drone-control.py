@@ -5,16 +5,12 @@ import sys, time
 
 def control(podtp: Podtp):
     podtp.start_stream()
-    # podtp.reset_estimator()
     # Initialize Pygame
     pygame.init()
     clock = pygame.time.Clock()
-
     # save depth and state data
     depth_data = open('cache/depth.txt', 'w')
     state_data = open('cache/state.txt', 'w')
-
-    # Set up the display
     screen = pygame.display.set_mode((1280, 720))
     pygame.display.set_caption('Drone Control')
     running = True
@@ -25,8 +21,12 @@ def control(podtp: Podtp):
     vz = 0
     height = 0.5
     last_command_time = 0
-
+    not_moving = True
     counter = 0
+
+    # podtp.takeoff()
+    # time.sleep(2)
+
     while running:
         # Event handling
         for event in pygame.event.get():
@@ -78,8 +78,16 @@ def control(podtp: Podtp):
         if dt > 200:
             if vz != 0:
                 height += vz * dt / 1000
+
             podtp.send_command_hover(vx, vy, vr, height)
-            # podtp.send_command_setpoint(0, 0, 0, 0)
+            # if vx != 0 or vy != 0 or vr != 0 or vz != 0:
+            #     not_moving = False
+            #     podtp.send_command_hover(vx, vy, vr, height)
+            # elif not_moving == False:
+            #     not_moving = True
+            #     podtp.send_command_hover(0, 0, 0, height)
+            #     time.sleep(0.8)
+            #     podtp.send_command_position(0, 0, 0, 0)
             last_command_time = pygame.time.get_ticks()
         # print(podtp.sensor_data.state.timestamp, podtp.sensor_data.state.data)
         # print(podtp.sensor_data.depth.timestamp, podtp.sensor_data.depth.data)
