@@ -24,11 +24,12 @@ class WifiLink:
             self.client_socket.settimeout(LINK_MAX_WAIT_TIME / 1000)
         self.client_connected = False
 
-    def connect(self) -> bool:
+    def connect(self, timeout=5) -> bool:
         try:
             if self.use_udp:
                 self.client_socket.bind(('', self.server_port))
             else:
+                self.client_socket.settimeout(timeout)
                 self.client_socket.connect((self.server_ip, self.server_port))
             self.client_connected = True
             print_t(f'Connected to {self.server_ip}:{self.server_port}')

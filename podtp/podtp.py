@@ -28,7 +28,7 @@ class Podtp:
     def __init__(self, config: dict):
         if 'ip_index' in config:
             config["ip"] = config["ip_list"][config["ip_index"]]
-        self.data_link = WifiLink(config["ip"], config["port"])
+        self.data_link = WifiLink(config["ip"], config.get("port", 80))
         self.packet_parser = PodtpParser()
         self.packet_queue = {}
         self.last_packet_time_lock = Lock()
@@ -37,13 +37,13 @@ class Podtp:
         for type in PodtpType:
             self.packet_queue[type.value] = queue.Queue()
 
-        self.stream_link = WifiLink('0.0.0.0', config["stream_port"], True)
+        self.stream_link = WifiLink('0.0.0.0', config.get("stream_port", 81), True)
         self.image_parser = ImageParser()
         self.stream_on = False
         self.sensor_data = Sensor()
 
-    def connect(self) -> bool:
-        self.connected = self.data_link.connect()
+    def connect(self, timeout=5) -> bool:
+        self.connected = self.data_link.connect(timeout)
         if self.connected:
             self.packet_thread = Thread(target=self._receive_packets_func)
             self.packet_thread.start()
