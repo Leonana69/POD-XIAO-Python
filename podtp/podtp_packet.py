@@ -39,6 +39,7 @@ class PodtpPort(Enum):
     CTRL_LOCK = 0x0
     CTRL_KEEP_ALIVE = 0x1
     CTRL_RESET_ESTIMATOR = 0x2
+    CTRL_OBSTACLE_AVOIDANCE = 0x3
     
     # ESP32
     ESP32_ECHO = 0x0

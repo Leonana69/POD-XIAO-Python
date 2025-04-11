@@ -5,6 +5,7 @@ import sys, time
 
 def control(podtp: Podtp):
     podtp.start_stream()
+    podtp.ctrl_obstacle_avoidance(True)
     # Initialize Pygame
     pygame.init()
     clock = pygame.time.Clock()
@@ -24,7 +25,7 @@ def control(podtp: Podtp):
     not_moving = True
     counter = 0
 
-    # podtp.takeoff()
+    # podtp.command_takeoff()
     # time.sleep(2)
 
     while running:
@@ -79,15 +80,15 @@ def control(podtp: Podtp):
             if vz != 0:
                 height += vz * dt / 1000
 
-            podtp.send_command_hover(vx, vy, vr, height)
+            podtp.command_hover(vx, vy, vr, height)
             # if vx != 0 or vy != 0 or vr != 0 or vz != 0:
             #     not_moving = False
-            #     podtp.send_command_hover(vx, vy, vr, height)
+            #     podtp.command_hover(vx, vy, vr, height)
             # elif not_moving == False:
             #     not_moving = True
-            #     podtp.send_command_hover(0, 0, 0, height)
+            #     podtp.command_hover(0, 0, 0, height)
             #     time.sleep(0.8)
-            #     podtp.send_command_position(0, 0, 0, 0)
+            #     podtp.command_position(0, 0, 0, 0)
             last_command_time = pygame.time.get_ticks()
         # print(podtp.sensor_data.state.timestamp, podtp.sensor_data.state.data)
         # print(podtp.sensor_data.depth.timestamp, podtp.sensor_data.depth.data)
@@ -115,7 +116,7 @@ def main():
     
     podtp = Podtp(config)
     if podtp.connect():
-        if not podtp.send_ctrl_lock(False):
+        if not podtp.ctrl_lock(False):
             print_t('Failed to unlock control')
         else:
             print_t('Drone unlocked')

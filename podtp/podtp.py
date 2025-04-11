@@ -162,44 +162,52 @@ class Podtp:
         else:
             print_t('No response')
 
-    def takeoff(self) -> bool:
+    def command_takeoff(self) -> bool:
         packet = PodtpPacket().set_header(PodtpType.COMMAND, PodtpPort.COMMAND_TAKEOFF)
         return self._send_packet(packet)
     
-    def land(self) -> bool:
+    def command_land(self) -> bool:
         packet = PodtpPacket().set_header(PodtpType.COMMAND, PodtpPort.COMMAND_LAND)
         return self._send_packet(packet)
 
-    def send_ctrl_lock(self, lock: bool) -> bool:
+    def ctrl_lock(self, lock: bool) -> bool:
         packet = PodtpPacket().set_header(PodtpType.CTRL,
                                           PodtpPort.CTRL_LOCK,
                                           ack=True)
         packet.length = 2
         packet.data[0] = 1 if lock else 0
         return self._send_packet(packet)
+    
+    def ctrl_obstacle_avoidance(self, enable: bool) -> bool:
+        packet = PodtpPacket().set_header(PodtpType.CTRL,
+                                          PodtpPort.CTRL_OBSTACLE_AVOIDANCE,
+                                          ack=True)
+        packet.length = 2
+        packet.data[0] = 1 if enable else 0
+        return self._send_packet(packet)
 
-    def send_command_setpoint(self, roll: float, pitch: float, yaw: float, thrust: float) -> bool:
+    def command_setpoint(self, roll: float, pitch: float, yaw: float, thrust: float) -> bool:
         packet = PodtpPacket().set_header(PodtpType.COMMAND, PodtpPort.COMMAND_RPYT)
         size = struct.calcsize('<ffff')
         packet.data[:size] = struct.pack('<ffff', roll, pitch, yaw, thrust)
         packet.length = 1 + size
         return self._send_packet(packet)
 
-    def send_command_hover(self, vx: float, vy: float, vyaw: float, height: float) -> bool:
+    def command_hover(self, vx: float, vy: float, vyaw: float, height: float) -> bool:
         packet = PodtpPacket().set_header(PodtpType.COMMAND, PodtpPort.COMMAND_HOVER)
         size = struct.calcsize('<ffff')
         packet.data[:size] = struct.pack('<ffff', vx, vy, vyaw, height)
         packet.length = 1 + size
         return self._send_packet(packet)
     
-    def send_command_velocity(self, vx: float, vy: float, vyaw: float, vz: float) -> bool:
+    def command_velocity(self, vx: float, vy: float, vyaw: float, vz: float) -> bool:
         packet = PodtpPacket().set_header(PodtpType.COMMAND, PodtpPort.COMMAND_VELOCITY)
         size = struct.calcsize('<ffff')
         packet.data[:size] = struct.pack('<ffff', vx, vy, vyaw, vz)
         packet.length = 1 + size
         return self._send_packet(packet)
     
-    def send_command_position(self, x: float, y: float, z: float, yaw: float) -> bool:
+    def command_position(self, x: float, y: float, z: float, yaw: float) -> bool:
         packet = PodtpPacket().set_header(PodtpType.COMMAND, PodtpPort.COMMAND_POSITION)
         size = struct.calcsize('<ffff')
         packet.data[:size] = struct.pack('<ffff', x, y, z, yaw)

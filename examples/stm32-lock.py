@@ -8,7 +8,7 @@ def main(lock: bool):
     
     podtp = Podtp(config)
     if podtp.connect():
-        if podtp.send_ctrl_lock(lock):
+        if podtp.ctrl_lock(lock):
             print(('Lock' if lock else 'Unlock') + ' [OK]')
         else:
             print(('Lock' if lock else 'Unlock') + ' [FAIL]')
