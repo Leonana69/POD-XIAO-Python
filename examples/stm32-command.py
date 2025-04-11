@@ -18,7 +18,12 @@ def hover_command(podtp: Podtp):
         # podtp.send_command_setpoint(0, 0, 0, 3000)
         time.sleep(0.2)
         count += 1
-    # podtp.send_command_position(0, 0, 0, 0)
+    # podtp.send_command_position(0.4, 0, 0, 0)
+    time.sleep(1)
+    podtp.send_command_position(0.5, 0, 0, 0)
+    # podtp.send_command_position(0, 0, 0, 90)
+    # time.sleep(0.2)
+    # podtp.send_command_position(-0.4, 0, 0, 0)
     
     input('Press Enter to land...')
     podtp.land()
