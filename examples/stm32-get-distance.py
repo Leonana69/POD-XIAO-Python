@@ -21,11 +21,20 @@ ax.set_xlabel("Column Index")
 ax.set_ylabel("Row Index")
 ax.grid(False)  # Optionally enable grid
 
+# Add text annotations for each cell
+text_annotations = [[ax.text(j, i, f'{int(data[i, j])}', ha='center', va='center', color='white')
+                     for j in range(data.shape[1])] for i in range(data.shape[0])]
+
+
 def update_plot(data):
     """Update the plot with new data."""
-    # print(data)
     im.set_data(data)
-    return [im]
+    # Update text annotations with the new data
+    for i in range(data.shape[0]):
+        for j in range(data.shape[1]):
+            text_annotations[i][j].set_text(f'{int(data[i, j])}')
+    return [im] + [text for row in text_annotations for text in row]
+
 
 def data_gen(podtp: Podtp):
     """Generator function to yield data packets."""
