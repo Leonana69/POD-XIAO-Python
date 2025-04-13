@@ -43,6 +43,9 @@ class Podtp:
         self.sensor_data = Sensor()
 
     def connect(self, timeout=5) -> bool:
+        """
+        Connect to the ESP32.
+        """
         self.connected = self.data_link.connect(timeout)
         if self.connected:
             self.packet_thread = Thread(target=self._receive_packets_func)
@@ -117,6 +120,7 @@ class Podtp:
                     self.sensor_data.depth = struct.unpack('<I64h', packet.data.bytes(0, 132))
                 elif packet.header.port == PodtpPort.LOG_STATE:
                     self.sensor_data.state = struct.unpack('<I6h', packet.data.bytes(0, 16))
+                    # print_t(f'State: {self.sensor_data.state.timestamp}: {self.sensor_data.state.data}')
             else:
                 self.packet_queue[packet.header.type].put(packet)
 
@@ -152,6 +156,9 @@ class Podtp:
         self._send_packet(packet)
 
     def esp32_echo(self, message: str = 'Hello, ESP32!'):
+        """
+        Send a message to the ESP32 and wait for a response.
+        """
         packet = PodtpPacket().set_header(PodtpType.ESP32, PodtpPort.ESP32_ECHO)
         packet.length = len(message) + 1
         packet.data[:len(message)] = message.encode()
@@ -163,14 +170,23 @@ class Podtp:
             print_t('No response')
 
     def command_takeoff(self) -> bool:
+        """
+        Send a takeoff command to the drone.
+        """
         packet = PodtpPacket().set_header(PodtpType.COMMAND, PodtpPort.COMMAND_TAKEOFF)
         return self._send_packet(packet)
     
     def command_land(self) -> bool:
+        """
+        Send a land command to the drone.
+        """
         packet = PodtpPacket().set_header(PodtpType.COMMAND, PodtpPort.COMMAND_LAND)
         return self._send_packet(packet)
 
     def ctrl_lock(self, lock: bool) -> bool:
+        """
+        Lock or unlock the drone.
+        """
         packet = PodtpPacket().set_header(PodtpType.CTRL,
                                           PodtpPort.CTRL_LOCK,
                                           ack=True)
@@ -179,6 +195,9 @@ class Podtp:
         return self._send_packet(packet)
     
     def ctrl_obstacle_avoidance(self, enable: bool) -> bool:
+        """
+        Enable or disable obstacle avoidance.
+        """
         packet = PodtpPacket().set_header(PodtpType.CTRL,
                                           PodtpPort.CTRL_OBSTACLE_AVOIDANCE,
                                           ack=True)
@@ -187,6 +206,9 @@ class Podtp:
         return self._send_packet(packet)
 
     def command_setpoint(self, roll: float, pitch: float, yaw: float, thrust: float) -> bool:
+        """
+        Send a setpoint command to the drone. roll, pitch, yaw, thrust are in radians.
+        """
         packet = PodtpPacket().set_header(PodtpType.COMMAND, PodtpPort.COMMAND_RPYT)
         size = struct.calcsize('<ffff')
         packet.data[:size] = struct.pack('<ffff', roll, pitch, yaw, thrust)
@@ -194,6 +216,9 @@ class Podtp:
         return self._send_packet(packet)
 
     def command_hover(self, vx: float, vy: float, vyaw: float, height: float) -> bool:
+        """
+        Send a hover command to the drone. vx, vy are in m/s,  vyaw is in rad/s, height is in m.
+        """
         packet = PodtpPacket().set_header(PodtpType.COMMAND, PodtpPort.COMMAND_HOVER)
         size = struct.calcsize('<ffff')
         packet.data[:size] = struct.pack('<ffff', vx, vy, vyaw, height)
@@ -201,6 +226,9 @@ class Podtp:
         return self._send_packet(packet)
     
     def command_velocity(self, vx: float, vy: float, vyaw: float, vz: float) -> bool:
+        """
+        Send a velocity command to the drone. vx, vy are in m/s,  vyaw is in rad/s, vz is in m/s.
+        """
         packet = PodtpPacket().set_header(PodtpType.COMMAND, PodtpPort.COMMAND_VELOCITY)
         size = struct.calcsize('<ffff')
         packet.data[:size] = struct.pack('<ffff', vx, vy, vyaw, vz)
@@ -208,12 +236,21 @@ class Podtp:
         return self._send_packet(packet)
     
     def command_position(self, x: float, y: float, z: float, yaw: float) -> bool:
+        """
+        Send a delta position command to the drone. x, y, z are in m, yaw is in degrees.
+        """
         packet = PodtpPacket().set_header(PodtpType.COMMAND, PodtpPort.COMMAND_POSITION)
         size = struct.calcsize('<ffff')
         packet.data[:size] = struct.pack('<ffff', x, y, z, yaw)
         packet.length = 1 + size
         return self._send_packet(packet)
     
-    def reset_estimator(self) -> bool:
-        packet = PodtpPacket().set_header(PodtpType.CTRL, PodtpPort.CTRL_RESET_ESTIMATOR)
+    def reset_estimator(self, starting_height=0) -> bool:
+        """
+        Reset the estimator with the given starting height (cm).
+        """
+        packet = PodtpPacket().set_header(PodtpType.CTRL, PodtpPort.CTRL_RESET_ESTIMATOR, ack=True)
+        packet.length = 2
+        assert starting_height < 100 and starting_height >= 0, "Height must be between 0 and 100 (cm)"
+        packet.data[0] = starting_height
         return self._send_packet(packet)
