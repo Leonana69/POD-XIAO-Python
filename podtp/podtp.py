@@ -194,15 +194,16 @@ class Podtp:
         packet.data[0] = 1 if lock else 0
         return self._send_packet(packet)
     
-    def ctrl_obstacle_avoidance(self, enable: bool) -> bool:
+    def ctrl_obstacle_avoidance(self, mode: int) -> bool:
         """
         Enable or disable obstacle avoidance.
+        mode = 0: disable, 1: stop, 2: avoid
         """
         packet = PodtpPacket().set_header(PodtpType.CTRL,
                                           PodtpPort.CTRL_OBSTACLE_AVOIDANCE,
                                           ack=True)
         packet.length = 2
-        packet.data[0] = 1 if enable else 0
+        packet.data[0] = mode
         return self._send_packet(packet)
 
     def command_setpoint(self, roll: float, pitch: float, yaw: float, thrust: float) -> bool:
