@@ -57,7 +57,7 @@ def control(podtp: Podtp):
         
         dt = pygame.time.get_ticks() - last_command_time
         if dt > 200:
-            podtp.command_hover(0, vx, -vy, vr)
+            podtp.command_hover(vx, -vy, vr, 0)
             last_command_time = pygame.time.get_ticks()
         # You can update your game logic and draw here
         # For this example, we'll just fill the screen with black
