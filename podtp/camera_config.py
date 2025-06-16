@@ -22,8 +22,8 @@ class CameraConfig:
                   [ 1.31717773]])
     
     def __init__(self, on: int = 1, frame_size: FrameSize = FrameSize.FRAMESIZE_HD, \
-                quality: int = 6, brightness: int = 3, contrast: int = 3, \
-                saturation: int = 0, sharpness: int = 2) -> None:
+                quality: int = 7, brightness: int = 0, contrast: int = 4, \
+                saturation: int = 2, sharpness: int = 4) -> None:
         self.on = on
         self.frame_size = frame_size
         self.quality = quality
