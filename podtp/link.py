@@ -10,7 +10,7 @@ class WifiLink:
     def __init__(self, server_ip: str, server_port: int, use_udp = False):
         self.server_ip = server_ip
         self.server_port = server_port
-        if server_ip == '255.255.255.255':
+        if server_ip == '255.255.255.255' or server_ip == '0.0.0.0':
             self.use_udp = True
             self.client_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
             self.client_socket.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
