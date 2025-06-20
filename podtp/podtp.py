@@ -37,7 +37,7 @@ class Podtp:
         for type in PodtpType:
             self.packet_queue[type.value] = queue.Queue()
 
-        self.stream_link = WifiLink('0.0.0.0', config.get("stream_port", 81), True)
+        self.stream_link = WifiLink(config["ip"], config.get("stream_port", 81), True)
         self.image_parser = ImageParser()
         self.stream_on = False
         self.sensor_data = Sensor()
